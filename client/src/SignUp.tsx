@@ -4,21 +4,37 @@ import { useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-const schema = z.object({
-  email: z.string().email(),
-  password: z
-    .string()
-    .min(8, { message: 'Password must be at least 8 characters' }),
-});
+const schema = z
+  .object({
+    email: z.string().email(),
+    password: z
+      .string()
+      .min(8, { message: 'Password must be at least 8 characters' }),
+    confirmPassword: z.string().min(8, {
+      message: 'Confirm password must be at least 8 characters',
+    }),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ['confirmPassword'],
+  });
 
 type FormFields = z.infer<typeof schema>;
 
-const LogIn = () => {
+const SignUp = () => {
   const [passwordVisibility, setPasswordVisibility] = useState(false);
+  const [confirmPasswordVisibility, setConfirmPasswordVisibility] =
+    useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const passwordVisibilityIcon = passwordVisibility ? (
+    <i className="fa-solid fa-eye w-4"></i>
+  ) : (
+    <i className="fa-solid fa-eye-slash w-4"></i>
+  );
+
+  const confirmPasswordVisibilityIcon = confirmPasswordVisibility ? (
     <i className="fa-solid fa-eye w-4"></i>
   ) : (
     <i className="fa-solid fa-eye-slash w-4"></i>
@@ -40,7 +56,7 @@ const LogIn = () => {
   const onSubmit: SubmitHandler<FormFields> = async (data: FormFields) => {
     try {
       setIsLoading(true);
-      const res = await fetch('http://localhost:3000/api/login', {
+      const res = await fetch('http://localhost:3000/api/signup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -50,7 +66,7 @@ const LogIn = () => {
       const result = await res.json();
 
       if (!res.ok) {
-        throw new Error(result.message || 'Login failed');
+        throw new Error(result.message || 'Signup failed');
       }
 
       localStorage.setItem('authToken', result.token);
@@ -58,7 +74,6 @@ const LogIn = () => {
 
       setTimeout(() => {
         setIsLoading(false);
-        localStorage.setItem('userEmail', data.email);
         navigate('/landing-page');
       }, 1000);
     } catch (error: any) {
@@ -75,9 +90,9 @@ const LogIn = () => {
   };
 
   return (
-    <div className="flex flex-col align-center text-center w-75 h-80 px-10 rounded-md shadow-[0_0_5px_rgba(0,0,0,0.1)]">
+    <div className="flex flex-col align-center text-center w-75 h-95 px-10 rounded-md shadow-[0_0_5px_rgba(0,0,0,0.1)]">
       <p className="text-red-400 text-xl font-bold mt-5 mb-1 drop-shadow-xs">
-        Log in
+        Sign Up
       </p>
       <form
         className="flex flex-col align-center justify-center text-left"
@@ -126,6 +141,35 @@ const LogIn = () => {
             </p>
           ) : null}
         </div>
+        <div className="flex flex-col align-center justify-center mb-3">
+          <label className="text-sm" htmlFor="password">
+            Confirm Password
+          </label>
+          <div className="relative">
+            <input
+              className="outline-none text-sm w-55 pl-2 pr-6 py-1 rounded-xs shadow-[0_0_5px_rgba(0,0,0,0.1)] drop-shadow-md"
+              {...register('confirmPassword')}
+              type={confirmPasswordVisibility ? 'text' : 'password'}
+              name="confirmPassword"
+            />
+            <button
+              className="absolute top-1/2 right-1.5 -translate-y-1/2 hover:text-red-500 transition-colors duration-300 ease-in-out text-xs drop-shadow-md cursor-pointer"
+              onClick={() =>
+                setConfirmPasswordVisibility(
+                  (prevVisibility) => !prevVisibility
+                )
+              }
+              type="button"
+            >
+              {confirmPasswordVisibilityIcon}
+            </button>
+          </div>
+          {errors.confirmPassword ? (
+            <p className="text-red-500 text-xs drop-shadow-md">
+              {errors.confirmPassword.message}
+            </p>
+          ) : null}
+        </div>
         <button
           className="bg-red-400 hover:bg-red-300 disabled:bg-gray-900 disabled:text-gray-600 transition-colors duration-300 ease-in-out text-white text-lg font-bold mt-3 px-4 py-2 rounded-full shadow-md drop-shadow-md cursor-pointer"
           disabled={isSubmitting || isLoading}
@@ -142,19 +186,17 @@ const LogIn = () => {
           )}
         </button>
         {errors.root ? (
-          <p className="text-center text-red-500 text-xs drop-shadow-md mt-2">
-            {errors.root.message}
-          </p>
+          <p className="text-center text-red-500 text-xs drop-shadow-md mt-2 "></p>
         ) : null}
       </form>
       <p
         className="hover:text-red-400 transition-colors duration-300 ease-in-out text-xs mt-3 cursor-pointer"
-        onClick={() => navigate('/signup')}
+        onClick={() => navigate('/login')}
       >
-        Don't have an account? Sign Up
+        Already have an account? Log In
       </p>
     </div>
   );
 };
 
-export default LogIn;
+export default SignUp;
