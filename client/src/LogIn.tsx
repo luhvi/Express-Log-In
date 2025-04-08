@@ -40,13 +40,16 @@ const LogIn = () => {
   const onSubmit: SubmitHandler<FormFields> = async (data: FormFields) => {
     try {
       setIsLoading(true);
-      const res = await fetch('http://localhost:3000/api/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_PUBLIC_DB_URL}/api/login`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        }
+      );
       const result = await res.json();
 
       if (!res.ok) {
@@ -58,7 +61,6 @@ const LogIn = () => {
 
       setTimeout(() => {
         setIsLoading(false);
-        localStorage.setItem('userEmail', data.email);
         navigate('/landing-page');
       }, 1000);
     } catch (error: any) {

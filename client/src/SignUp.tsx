@@ -56,13 +56,16 @@ const SignUp = () => {
   const onSubmit: SubmitHandler<FormFields> = async (data: FormFields) => {
     try {
       setIsLoading(true);
-      const res = await fetch('http://localhost:3000/api/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_PUBLIC_DB_URL}/api/signup`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        }
+      );
       const result = await res.json();
 
       if (!res.ok) {
